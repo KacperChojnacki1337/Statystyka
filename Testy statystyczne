@@ -1,0 +1,234 @@
+#T-STUDENT
+#t-student służy do porównania dwóch grup. Przykładowo testowanie skuteczności diety, gdzie ta sama grupa jest ważona przed stosowaniem diety i po stosowaniu.
+import pandas as pd
+import numpy as np
+from scipy.stats import ttest_ind
+
+# Przykładowe dane
+df = pd.DataFrame({
+    "female": np.random.randint(10, 100, size=10),
+    "male": np.random.randint(10, 140, size=10)
+})
+
+# Wykonanie testu t-Studenta
+t_stat, p = ttest_ind(df['male'], df['female'])
+print(f't = {t_stat}, p = {p}')
+print("Im mniejsze p tym większe prawdopodobieństwo")
+print("Im większe t tym większa różnica między grupami")
+
+
+
+#TEST CHI
+#test chi służy do określenia związku pomiędzy dwoma zmiennymi w podobnym zbiorze danych. Przykładowo sprawdzamy czy zmienne są niezależne od siebie (brak korelacji) lub sprawdzamy równoliczność grup.
+import pandas as pd
+from scipy.stats import chi2_contingency
+
+# Przykładowe dane (liczba wyborców w poszczególnych grupach)
+data = {
+    'Mężczyźni': [120, 90, 40],  # Liczba wyborców preferujących różne partie
+    'Kobiety': [110, 95, 45]
+}
+
+# Tworzenie ramki danych
+df = pd.DataFrame(data)
+
+# Wykonanie testu chi-kwadrat
+chi2_stat, p_value, dof, expected = chi2_contingency(df)
+
+# Wypisanie wyników
+print(f'Chi-kwadrat: {chi2_stat:.2f}')
+print(f'Wartość p: {p_value:.6f}')
+print("Im mniejsze p tym większe prawdopodobieństwo")
+print("Im większa wartośc chi kwadrat tym większe różnica między obserwowanymi a oczekiwanymi wartościami)")
+
+
+#TEST ANOVA
+#test ANOVA - porównanie wariancji pomiędzy średnimi róznych próbek. Pozwala na porównanie więcej niż dwóch grup
+from scipy.stats import f_oneway
+
+# Przykładowe dane
+group1 = np.random.normal(0, 1, 100)
+group2 = np.random.normal(1, 1, 100)
+group3 = np.random.normal(2, 1, 100)
+
+# Wykonanie ANOVA
+f_stat, p_value = f_oneway(group1, group2, group3)
+print(f'F-statystyka = {f_stat}, p-wartość = {p_value}')
+
+print("Im mniejsze p tym większe prawdopodobieństwo")
+print("Im większa wartośc f tym większa różnica między grupami)")
+print("wartość F mierzy różnicę między wariancjami między grupami a wariancją wewnątrz grupy")
+
+
+
+
+#TEST LEVENE'A
+#test Levene'a>ocena równości wariancji między grupami/homoskedeastycznośc
+import scipy.stats as stats
+
+# Dane dla trzech grup
+group1 = [7, 14, 14, 13, 12, 9, 6, 14, 12, 8]
+group2 = [15, 17, 13, 15, 15, 13, 9, 12, 10, 8]
+group3 = [6, 8, 8, 9, 5, 14, 13, 8, 10, 9]
+
+# Wykonanie testu Levene'a
+# Używamy zarówno średniej, jak i mediany jako punktu centralnego
+result_median = stats.levene(group1, group2, group3, center='median')
+result_mean = stats.levene(group1, group2, group3, center='mean')
+
+# Wyświetlenie wyników
+print("Test Levene'a (średnia):")
+print(f"Statystyka: {result_mean.statistic:.4f}, p-wartość: {result_mean.pvalue:.4f}")
+
+print("\nTest Levene'a (mediana):")
+print(f"Statystyka: {result_median.statistic:.4f}, p-wartość: {result_median.pvalue:.4f}")
+
+# Interpretacja wyników
+if result_mean.pvalue >= 0.05:
+    print("\nNie odrzucamy hipotezy zerowej.")
+    print("To oznacza, że wariancje między trzema grupami są podobne.")
+else:
+    print("\nOdrzucamy hipotezę zerową.")
+    print("Wariancje między grupami są różne.")
+
+
+#TEST PEARSONA
+#test Pearsona - korelacja liniowa (-1 do 1)
+import pandas as pd
+
+# Załóżmy, że mamy dane dotyczące ocen z angielskiego i historii
+# w postaci Pandas DataFrame
+data = {
+    'English': [74.57, 75.12, 75.69, 73.89, 75.02],
+    'History': [86.50, 86.80, 87.98, 85.41, 86.81]
+}
+
+df = pd.DataFrame(data)
+
+# Wybieramy tylko kolumny 'English' i 'History'
+selected_columns = df[['English', 'History']]
+
+# Obliczamy współczynnik korelacji Pearsona
+correlation_matrix = selected_columns.corr()
+
+# Wyświetlamy wynik
+print(correlation_matrix)
+
+
+
+
+
+#TEST SPEARMANA
+#test Spearmana - korelacja rang, nieparametryczny. Przedział (-1 do 1). Stosujemy przy obserwacjach odstających oraz danych o charakterze porządkowym
+import pandas as pd
+from scipy.stats import spearmanr
+
+# Dane dotyczące wyników z matematyki i nauk przyrodniczych
+data = {
+    'student': ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'],
+    'math': [70, 78, 90, 87, 84, 86, 91, 74, 83, 85],
+    'science': [90, 94, 79, 86, 84, 83, 88, 92, 76, 75]
+}
+
+df = pd.DataFrame(data)
+
+# Obliczamy współczynnik korelacji rang Spearmana
+rho, p = spearmanr(df['math'], df['science'])
+
+# Wyświetlamy wynik
+print(f"Współczynnik korelacji rang Spearmana: {rho:.4f}")
+print(f"P-wartość: {p:.4f}")
+
+
+
+
+#TEST DURBINA-WATSONA
+# Test Durbin-Watsona - wykrywanie autokorelacji
+import pandas as pd
+from statsmodels.formula.api import ols
+from statsmodels.stats.stattools import durbin_watson
+
+# Przykładowy zbiór danych
+data = {
+    'rating': [90, 85, 82, 88, 94, 90, 76, 75, 87, 86],
+    'points': [25, 20, 14, 16, 27, 20, 12, 15, 14, 19],
+    'assists': [5, 7, 7, 8, 5, 7, 6, 9, 9, 5],
+    'rebounds': [11, 8, 10, 6, 6, 9, 6, 10, 10, 7]
+}
+
+df = pd.DataFrame(data)
+
+# Dopasowanie modelu regresji liniowej
+model = ols('rating ~ points + assists + rebounds', data=df).fit()
+
+# Wykonanie testu Durbin-Watsona
+dw_statistic = durbin_watson(model.resid)
+
+print(f"Statystyka testowa Durbin-Watsona: {dw_statistic:.3f}")
+
+
+
+
+
+#TEST SHAPIRO WILKA
+#test shapiro wilka - czy próbka danych pochodzi z rozkładu normalnego. Im wyższa statystyka testowa tym bardziej prawdopodbne, że jest rozkład normalny
+import numpy as np
+from scipy.stats import shapiro
+
+# Wygenerujmy 100 losowych wartości z rozkładu normalnego
+data = np.random.randn(100)
+
+# Wykonaj test Shapiro-Wilka
+statistic, p_value = shapiro(data)
+
+print(f"Statystyka testowa: {statistic:.4f}")
+print(f"Wartość p: {p_value:.4f}")
+
+if p_value > 0.05:
+    print("Nie ma podstaw do odrzucenia hipotezy zerowej.")
+else:
+    print("Odrzucamy hipotezę zerową - dane nie pochodzą z rozkładu normalnego.")
+
+
+
+#REGRESJA LINIOWA
+
+#r^2 - w jakim stopniu model wyjaśnia zmienność danych
+#adj r^2 - skorygowany o mnogość zmiennych niezależnych
+# statystyka F - mierzy ogólna istotność modelu, im większy f tym większa istoność
+# współczynnik coef - wpływ zmiennych niezależnych na zmienną zależną
+#p-wartość (p>t) - im niższa p-wartość tym bardziej istotny wynik
+#wwarunki do spełnienia: 1. brak heteroskedastyczności 2. brak autokorelacji 3. w przypadku regresji wielorakiej zmiennej niezależne nie powinny być ze sobą skorelowane 4.rozkład powinien być normalny, ale nie musi
+
+import pandas as pd
+import statsmodels.api as sm
+
+# Dane przykładowe
+data = {
+    'hours': [1, 2, 2, 4, 2, 1, 5, 4, 2, 4, 4, 3, 6, 5, 3, 4, 6, 2, 1, 2],
+    'exams': [1, 3, 3, 5, 2, 2, 1, 1, 0, 3, 4, 3, 2, 4, 4, 4, 5, 1, 0, 1],
+    'score': [76, 78, 85, 88, 72, 69, 94, 94, 88, 92, 90, 75, 96, 90, 82, 85, 99, 83, 62, 76]
+}
+
+df = pd.DataFrame(data)
+
+# Definiujemy zmienne niezależne i zależną
+X = df[['hours', 'exams']]
+X = sm.add_constant(X)  # Dodajemy stałą
+y = df['score']
+
+# Wykonujemy regresję liniową
+model = sm.OLS(y, X).fit()
+
+# Wyświetlamy wynik
+print(model.summary())
+
+
+
+
+
+
+
+
+
+
